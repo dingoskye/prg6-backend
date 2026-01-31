@@ -2,13 +2,12 @@ import mongoose from "mongoose";
 
 const blogSchema = new mongoose.Schema({
         title: {type: String, required: true},
-        movie: {
+        circuit: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "Movie",
+            ref: "Circuit",
             required: true
         },
         author: {type: String, required: true},
-        cinema: {type: String, required: true},
         favorite: {type: Boolean, required: true, default: false},
         blog: {type: String, required: true},
     },

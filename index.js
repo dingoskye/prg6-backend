@@ -1,8 +1,18 @@
-import express from "express"
-import mongoose from "mongoose"
-import router from "./routes/movieRouter.js"
+import express from 'express';
+import mongoose from "mongoose";
+const app = express();
+import router from "./routes/blogRouter.js"
+import circuitRouter from "./routes/circuitRouter.js";
 
-const app = express()
+// const PORT = process.env.PORT || 8000;
+
+// app.get('/', (req, res) => {
+//     res.send('Hello World!');
+// });
+//
+// app.listen(PORT, () => {
+//     console.log(`Server draait op poort ${PORT}`);
+// });
 
 try {
     await mongoose.connect(process.env.MONGODB_URI)
@@ -14,7 +24,24 @@ try {
     app.use(express.json());
     app.use(express.urlencoded({extended: true}));
 
-    app.use("/", router)
+    //middleware
+    app.use("/", (req, res, next) => {
+        const headers = req.headers["accept"]
+        const method = req.method
+
+        res.header("Access-Control-Allow-Origin", '*')
+
+        if (method === "OPTIONS") {
+            next()
+        } else if (headers && headers.includes("application/json")) {
+            next()
+        } else {
+            res.status(406).json({message: "Webservice only supports json."})
+        }
+    })
+
+    app.use("/circuits", circuitRouter)
+    app.use("/blogs", router)
 
 } catch (e) {
     console.log("Database connection failed")
