@@ -2,9 +2,9 @@ import express from "express"
 import {fakerNL} from "@faker-js/faker";
 import Circuit from "../models/circuitModel.js";
 
-const circuitRouter = express.Router()
+const router = express.Router()
 
-circuitRouter.use((req, res, next) => {
+router.use((req, res, next) => {
     const headers = req.headers["accept"]
     const method = req.method
 
@@ -15,24 +15,29 @@ circuitRouter.use((req, res, next) => {
     }
 })
 
-circuitRouter.get("/", async (req, res) => {
-    const circuits = await Circuit.find({})
-    const collection = {
-        items: circuits,
-        _links: {
-            self: {
-                href: `${process.env.BASE_URI}`
-            },
-            collection: {
-                href: `${process.env.BASE_URI}`
+router.get("/", async (req, res) => {
+    try {
+        const circuits = await Circuit.find({})
+
+        const collection = {
+            items: circuits,
+            _links: {
+                self: {
+                    href: `${process.env.BASE_URI}/circuits`
+                },
+                collection: {
+                    href: `${process.env.BASE_URI}/circuits`
+                }
             }
         }
-    }
 
-    res.status(200).json(collection)
+        res.status(200).json(collection)
+    } catch (e) {
+        res.status(500).json({ message: e.message })
+    }
 })
 
-circuitRouter.get("/:id", async (req, res) => {
+router.get("/:id", async (req, res) => {
     const id = req.params.id
     try {
         const circuit = await Circuit.findById(id)
@@ -42,13 +47,26 @@ circuitRouter.get("/:id", async (req, res) => {
     }
 })
 
-circuitRouter.post("/", async (req, res) => {
+router.post("/", async (req, res) => {
     try {
         const circuit = new Circuit({
             name: req.body.name,
             owner: req.body.owner,
-            opening: req.body.opening,
             description: req.body.description,
+            opened_year: req.body.opened_year,
+            capacity: req.body.capacity,
+            country: req.body.country,
+            city: req.body.city,
+            length_km: req.body.length_km,
+            number_of_turns: req.body.number_of_turns,
+            track_type: req.body.track_type,
+            direction: req.body.direction,
+            lap_record: req.body.lap_record,
+            latitude: req.body.latitude,
+            longitude: req.body.longitude,
+            fia_grade: req.body.fia_grade,
+            image_url: req.body.image_url,
+            favorite: req.body.favorite
         })
 
         await circuit.save()
@@ -58,7 +76,7 @@ circuitRouter.post("/", async (req, res) => {
     }
 })
 
-circuitRouter.put("/:id", async (req, res) => {
+router.put("/:id", async (req, res) => {
     const id = req.params.id
 
     try {
@@ -67,11 +85,23 @@ circuitRouter.put("/:id", async (req, res) => {
         if (!circuit) {
             return res.status(404).json({ message: "Circuit not found" })
         }
-
-            circuit.name = req.body.name
-            circuit.owner = req.body.owner
-            circuit.opening = req.body.opening
-            circuit.description = req.body.description
+        circuit.name = req.body.name
+        circuit.owner = req.body.owner
+        circuit.description = req.body.description
+        circuit.opened_year = req.body.opened_year
+        circuit.capacity = req.body.capacity
+        circuit.country = req.body.country
+        circuit.city = req.body.city
+        circuit.length_km = req.body.length_km
+        circuit.number_of_turns = req.body.number_of_turns
+        circuit.track_type = req.body.track_type
+        circuit.direction = req.body.direction
+        circuit.lap_record = req.body.lap_record
+        circuit.latitude = req.body.latitude
+        circuit.longitude = req.body.longitude
+        circuit.fia_grade = req.body.fia_grade
+        circuit.image_url = req.body.image_url
+        circuit.favorite = req.body.favorite
 
         const succes = await circuit.save()
         res.status(200).json(succes)
@@ -80,7 +110,7 @@ circuitRouter.put("/:id", async (req, res) => {
     }
 })
 
-circuitRouter.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req, res) => {
     const id = req.params.id
     try {
         const circuit = await Circuit.findById(id)
@@ -96,30 +126,30 @@ circuitRouter.delete("/:id", async (req, res) => {
     }
 })
 
-circuitRouter.post("/circuits/seed", async (req, res) => {
-    const reset = req.body.reset
-    if (reset === "true") {
-        await Circuit.deleteMany({})
-    }
-
-    const amount = 10
-    const circuits = []
-
-    for (let i = 0; i < amount; i++) {
-        const circuit = Circuit({
-            name: fakerNL.book.title(),
-            owner: fakerNL.person.fullName(),
-            description: fakerNL.lorem.paragraph(),
-            favorite: fakerNL.datatype.boolean(),
-        })
-        circuit.save()
-        circuits.push(circuit)
-    }
-
-    res.status(201).send(circuits)
-})
+// router.post("/circuits/seed", async (req, res) => {
+//     const reset = req.body.reset
+//     if (reset === "true") {
+//         await Circuit.deleteMany({})
+//     }
 //
-// circuitRouter.post("/seed", async (req, res, next) => {
+//     const amount = 10
+//     const circuits = []
+//
+//     for (let i = 0; i < amount; i++) {
+//         const circuit = Circuit({
+//             name: fakerNL.book.title(),
+//             owner: fakerNL.person.fullName(),
+//             description: fakerNL.lorem.paragraph(),
+//             favorite: fakerNL.datatype.boolean(),
+//         })
+//         circuit.save()
+//         circuits.push(circuit)
+//     }
+//
+//     res.status(201).send(circuits)
+// })
+//
+// router.post("/seed", async (req, res, next) => {
 //     if (req.body?.method && req.body.method === "SEED") {
 //
 //         const reset = req.body?.reset ?? false
@@ -148,12 +178,13 @@ circuitRouter.post("/circuits/seed", async (req, res) => {
 //     }
 // })
 
-circuitRouter.options("/", (req, res) => {
+router.options("/", (req, res) => {
     res.header("Allow", "GET, POST, OPTIONS").status(204).send()
 })
 
-circuitRouter.options("/:id", (req, res) => {
+router.options("/:id", (req, res) => {
     res.header("Allow", "GET, PUT, DELETE, OPTIONS").status(204).send()
 })
 
-export default circuitRouter
+export default router
+
