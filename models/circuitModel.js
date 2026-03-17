@@ -19,7 +19,6 @@ const circuitModel = new mongoose.Schema({
         longitude: { type: Number, required: true },
 
         fia_grade: { type: String, enum: ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5"], required: false},
-        image_url: { type: String, required: false },
         favorite: { type: Boolean, required: true, default: false },
 
 },{

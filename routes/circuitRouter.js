@@ -1,5 +1,5 @@
 import express from "express"
-import {fakerNL} from "@faker-js/faker";
+import {fakerNL} from "@faker-js/faker"
 import Circuit from "../models/circuitModel.js";
 
 const router = express.Router()
@@ -49,6 +49,11 @@ router.get("/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
     try {
+        if (Array.isArray(req.body)) {
+            const circuits = await Circuit.insertMany(req.body)
+            return res.status(201).json(circuits)
+        }
+
         const circuit = new Circuit({
             name: req.body.name,
             owner: req.body.owner,
@@ -65,7 +70,6 @@ router.post("/", async (req, res) => {
             latitude: req.body.latitude,
             longitude: req.body.longitude,
             fia_grade: req.body.fia_grade,
-            image_url: req.body.image_url,
             favorite: req.body.favorite
         })
 
@@ -100,7 +104,6 @@ router.put("/:id", async (req, res) => {
         circuit.latitude = req.body.latitude
         circuit.longitude = req.body.longitude
         circuit.fia_grade = req.body.fia_grade
-        circuit.image_url = req.body.image_url
         circuit.favorite = req.body.favorite
 
         const succes = await circuit.save()
@@ -124,6 +127,19 @@ router.delete("/:id", async (req, res) => {
     } catch (e) {
         res.status(400).send(e.message)
     }
+})
+
+//options routes
+router.options("/", (req, res) => {
+    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+    res.header("Access-Control-Allow-Headers", "Content-Type, Accept")
+    res.header("Allow", "GET, POST, OPTIONS").status(204).send()
+})
+
+router.options("/:id", (req, res) => {
+    res.header("Access-Control-Allow-Methods", "GET, PUT, PATCH, DELETE, OPTIONS")
+    res.header("Access-Control-Allow-Headers", "Content-Type, Accept")
+    res.header("Allow", "GET, PUT, PATCH, DELETE, OPTIONS").status(204).send()
 })
 
 // router.post("/circuits/seed", async (req, res) => {
@@ -177,14 +193,6 @@ router.delete("/:id", async (req, res) => {
 //         next()
 //     }
 // })
-
-router.options("/", (req, res) => {
-    res.header("Allow", "GET, POST, OPTIONS").status(204).send()
-})
-
-router.options("/:id", (req, res) => {
-    res.header("Allow", "GET, PUT, DELETE, OPTIONS").status(204).send()
-})
 
 export default router
 

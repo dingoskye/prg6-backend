@@ -7,8 +7,8 @@ Eindopdracht backend programmeren 6
 # Wat is nog niet af?
 - basiseisen (4,5) 
 - collectie filteren (6)
-- file upload (7)
-- endpoint beveiliging jwt (8)
+- endpoint beveiliging jwt (7)
+- file upload (8)
 
 # Basiseisen
 ![img.png](img.png)
