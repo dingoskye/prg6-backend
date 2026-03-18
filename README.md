@@ -2,13 +2,13 @@
 Eindopdracht backend programmeren 6
 
 # Wat is af?
--
+- basiseisen (4,5)
+- Cors Headers (6)
 
 # Wat is nog niet af?
-- basiseisen (4,5) 
-- collectie filteren (6)
-- endpoint beveiliging jwt (7)
-- file upload (8)
+- collectie filteren (7)
+- endpoint beveiliging jwt (8)
+- file upload (9)
 
 # Basiseisen
 ![img.png](img.png)

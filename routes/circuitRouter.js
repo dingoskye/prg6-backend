@@ -1,5 +1,4 @@
 import express from "express"
-import {fakerNL} from "@faker-js/faker"
 import Circuit from "../models/circuitModel.js";
 
 const router = express.Router()
@@ -38,12 +37,18 @@ router.get("/", async (req, res) => {
 })
 
 router.get("/:id", async (req, res) => {
-    const id = req.params.id
+    const id = req.params.id;
+
     try {
-        const circuit = await Circuit.findById(id)
-        res.status(200).json(circuit)
+        const circuit = await Circuit.findById(id);
+
+        if (!circuit) {
+            return res.status(404).json({ message: "Circuit not found" });
+        }
+
+        res.status(200).json(circuit);
     } catch (e) {
-        res.status(404).send(e.message)
+        res.status(404).json({ message: "Circuit not found" });
     }
 })
 
@@ -62,15 +67,15 @@ router.post("/", async (req, res) => {
             capacity: req.body.capacity,
             country: req.body.country,
             city: req.body.city,
-            length_km: req.body.length_km,
-            number_of_turns: req.body.number_of_turns,
-            track_type: req.body.track_type,
-            direction: req.body.direction,
-            lap_record: req.body.lap_record,
-            latitude: req.body.latitude,
-            longitude: req.body.longitude,
-            fia_grade: req.body.fia_grade,
-            favorite: req.body.favorite
+            length_km: req.body.length_km ?? "",
+            number_of_turns: req.body.number_of_turns ?? "",
+            track_type: req.body.track_type ?? "",
+            direction: req.body.direction ?? "",
+            lap_record: req.body.lap_record ?? "",
+            latitude: req.body.latitude ?? "",
+            longitude: req.body.longitude ?? "",
+            fia_grade: req.body.fia_grade ?? "",
+            favorite: req.body.favorite ?? false
         })
 
         await circuit.save()
@@ -113,19 +118,73 @@ router.put("/:id", async (req, res) => {
     }
 })
 
-router.delete("/:id", async (req, res) => {
-    const id = req.params.id
-    try {
-        const circuit = await Circuit.findById(id)
+router.patch("/:id", async (req, res) => {
+    const id = req.params.id;
 
-        if (!circuit) {
-            return res.status(404).json({ message: "Circuit not found" })
+    const {name, owner, description, opened_year, capacity, country, city, length_km, number_of_turns, track_type, direction, lap_record, latitude, longitude, fia_grade, favorite} = req.body;
+
+    if (Object.keys(req.body).length === 0) {
+        return res.status(400).json({
+            message: "At least one field must be provided"
+        });
+    }
+
+    try {
+        const updatedCircuit = await Circuit.findByIdAndUpdate(
+            id,
+            {
+                ...(name !== undefined && { name }),
+                ...(owner !== undefined && { owner }),
+                ...(description !== undefined && { description }),
+                ...(opened_year !== undefined && { opened_year }),
+                ...(capacity !== undefined && { capacity }),
+                ...(country !== undefined && { country }),
+                ...(city !== undefined && { city }),
+                ...(length_km !== undefined && { length_km }),
+                ...(number_of_turns !== undefined && { number_of_turns }),
+                ...(track_type !== undefined && { track_type }),
+                ...(direction !== undefined && { direction }),
+                ...(lap_record !== undefined && { lap_record }),
+                ...(latitude !== undefined && { latitude }),
+                ...(longitude !== undefined && { longitude }),
+                ...(fia_grade !== undefined && { fia_grade }),
+                ...(favorite !== undefined && { favorite }),
+            },
+            {
+                new: true,
+                runValidators: true,
+            }
+        );
+
+        if (!updatedCircuit) {
+            return res.status(404).json({
+                message: "Circuit not found"
+            });
         }
 
-        await circuit.deleteOne()
-        res.status(204).send()
+        res.status(200).json(updatedCircuit);
+
     } catch (e) {
-        res.status(400).send(e.message)
+        res.status(400).json({
+            message: e.message
+        });
+    }
+});
+
+router.delete("/:id", async (req, res) => {
+    const id = req.params.id;
+
+    try {
+        const circuit = await Circuit.findById(id);
+
+        if (!circuit) {
+            return res.status(404).json({ message: "Circuit not found" });
+        }
+
+        await circuit.deleteOne();
+        res.status(204).send();
+    } catch (e) {
+        res.status(400).json({ message: e.message });
     }
 })
 
@@ -141,58 +200,6 @@ router.options("/:id", (req, res) => {
     res.header("Access-Control-Allow-Headers", "Content-Type, Accept")
     res.header("Allow", "GET, PUT, PATCH, DELETE, OPTIONS").status(204).send()
 })
-
-// router.post("/circuits/seed", async (req, res) => {
-//     const reset = req.body.reset
-//     if (reset === "true") {
-//         await Circuit.deleteMany({})
-//     }
-//
-//     const amount = 10
-//     const circuits = []
-//
-//     for (let i = 0; i < amount; i++) {
-//         const circuit = Circuit({
-//             name: fakerNL.book.title(),
-//             owner: fakerNL.person.fullName(),
-//             description: fakerNL.lorem.paragraph(),
-//             favorite: fakerNL.datatype.boolean(),
-//         })
-//         circuit.save()
-//         circuits.push(circuit)
-//     }
-//
-//     res.status(201).send(circuits)
-// })
-//
-// router.post("/seed", async (req, res, next) => {
-//     if (req.body?.method && req.body.method === "SEED") {
-//
-//         const reset = req.body?.reset ?? false
-//         if (reset && reset === "true") {
-//             await Circuit.deleteMany({})
-//         }
-//
-//         const amount = req.body?.amount ?? 10
-//         const circuits = []
-//
-//         for (let i = 0; i < amount; i++) {
-//
-//             const circuit = Circuit({
-//                 name: fakerNL.book.title(),
-//             owner: fakerNL.person.fullName(),
-//             description: fakerNL.lorem.paragraph(),
-//             favorite: fakerNL.datatype.boolean(),
-//             })
-//             await circuit.save()
-//             circuits.push(circuit)
-//         }
-//         res.status(201).json(circuits)
-//
-//     } else {
-//         next()
-//     }
-// })
 
 export default router
 
