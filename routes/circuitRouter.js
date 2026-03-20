@@ -67,14 +67,6 @@ router.post("/", async (req, res) => {
             capacity: req.body.capacity,
             country: req.body.country,
             city: req.body.city,
-            length_km: req.body.length_km ?? "",
-            number_of_turns: req.body.number_of_turns ?? "",
-            track_type: req.body.track_type ?? "",
-            direction: req.body.direction ?? "",
-            lap_record: req.body.lap_record ?? "",
-            latitude: req.body.latitude ?? "",
-            longitude: req.body.longitude ?? "",
-            fia_grade: req.body.fia_grade ?? "",
             favorite: req.body.favorite ?? false
         })
 
@@ -101,15 +93,7 @@ router.put("/:id", async (req, res) => {
         circuit.capacity = req.body.capacity
         circuit.country = req.body.country
         circuit.city = req.body.city
-        circuit.length_km = req.body.length_km
-        circuit.number_of_turns = req.body.number_of_turns
-        circuit.track_type = req.body.track_type
-        circuit.direction = req.body.direction
-        circuit.lap_record = req.body.lap_record
-        circuit.latitude = req.body.latitude
-        circuit.longitude = req.body.longitude
-        circuit.fia_grade = req.body.fia_grade
-        circuit.favorite = req.body.favorite
+        circuit.favorite = req.body.favorite ?? circuit.favorite
 
         const succes = await circuit.save()
         res.status(200).json(succes)
@@ -119,58 +103,65 @@ router.put("/:id", async (req, res) => {
 })
 
 router.patch("/:id", async (req, res) => {
-    const id = req.params.id;
+    const id = req.params.id
 
-    const {name, owner, description, opened_year, capacity, country, city, length_km, number_of_turns, track_type, direction, lap_record, latitude, longitude, fia_grade, favorite} = req.body;
+    const allowedFields = ["name", "owner", "description", "opened_year", "capacity", "country", "city", "favorite"]
 
-    if (Object.keys(req.body).length === 0) {
+    const updates = Object.keys(req.body)
+    const hasValidField = updates.some(field => allowedFields.includes(field))
+
+    if (!hasValidField) {
         return res.status(400).json({
-            message: "At least one field must be provided"
-        });
+            message: "Body is empty or contains no valid fields"
+        })
     }
 
     try {
-        const updatedCircuit = await Circuit.findByIdAndUpdate(
-            id,
-            {
-                ...(name !== undefined && { name }),
-                ...(owner !== undefined && { owner }),
-                ...(description !== undefined && { description }),
-                ...(opened_year !== undefined && { opened_year }),
-                ...(capacity !== undefined && { capacity }),
-                ...(country !== undefined && { country }),
-                ...(city !== undefined && { city }),
-                ...(length_km !== undefined && { length_km }),
-                ...(number_of_turns !== undefined && { number_of_turns }),
-                ...(track_type !== undefined && { track_type }),
-                ...(direction !== undefined && { direction }),
-                ...(lap_record !== undefined && { lap_record }),
-                ...(latitude !== undefined && { latitude }),
-                ...(longitude !== undefined && { longitude }),
-                ...(fia_grade !== undefined && { fia_grade }),
-                ...(favorite !== undefined && { favorite }),
-            },
-            {
-                new: true,
-                runValidators: true,
-            }
-        );
+        const circuit = await Circuit.findById(id)
 
-        if (!updatedCircuit) {
-            return res.status(404).json({
-                message: "Circuit not found"
-            });
+        if (!circuit) {
+            return res.status(404).json({ message: "Not found" })
         }
 
-        res.status(200).json(updatedCircuit);
+        if (req.body.name) {
+            circuit.name = req.body.name
+        }
+
+        if (req.body.owner) {
+            circuit.owner = req.body.owner
+        }
+
+        if (req.body.description) {
+            circuit.description = req.body.description
+        }
+
+        if (req.body.opened_year) {
+            circuit.opened_year = req.body.opened_year
+        }
+
+        if (req.body.capacity) {
+            circuit.capacity = req.body.capacity
+        }
+
+        if (req.body.country) {
+            circuit.country = req.body.country
+        }
+
+        if (req.body.city) {
+            circuit.city = req.body.city
+        }
+
+        if (req.body.favorite !== undefined) {
+            circuit.favorite = !circuit.favorite
+        }
+
+        const success = await circuit.save()
+        res.status(200).json(success)
 
     } catch (e) {
-        res.status(400).json({
-            message: e.message
-        });
+        res.status(400).json({ message: e.message })
     }
-});
-
+})
 router.delete("/:id", async (req, res) => {
     const id = req.params.id;
 
