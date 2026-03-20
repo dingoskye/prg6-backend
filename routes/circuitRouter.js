@@ -18,14 +18,25 @@ router.get("/", async (req, res) => {
     try {
         const circuits = await Circuit.find({})
 
-        const collection = {
-            items: circuits,
+        const items = circuits.map(circuit => ({
+            name: circuit.name,
+            owner: circuit.owner,
+            country: circuit.country,
             _links: {
                 self: {
-                    href: `${process.env.BASE_URI}/circuits`
+                    href: `${process.env.BASE_URI}/${circuit._id}`
+                }
+            }
+        }))
+
+        const collection = {
+            items,
+            _links: {
+                self: {
+                    href: `${process.env.BASE_URI}`
                 },
                 collection: {
-                    href: `${process.env.BASE_URI}/circuits`
+                    href: `${process.env.BASE_URI}`
                 }
             }
         }
@@ -53,11 +64,12 @@ router.get("/:id", async (req, res) => {
 })
 
 router.post("/", async (req, res) => {
+
     try {
-        if (Array.isArray(req.body)) {
-            const circuits = await Circuit.insertMany(req.body)
-            return res.status(201).json(circuits)
-        }
+        // if (Array.isArray(req.body)) {
+        //     const circuits = await Circuit.insertMany(req.body)
+        //     return res.status(201).json(circuits)
+        // }
 
         const circuit = new Circuit({
             name: req.body.name,
@@ -105,17 +117,17 @@ router.put("/:id", async (req, res) => {
 router.patch("/:id", async (req, res) => {
     const id = req.params.id
 
-    const allowedFields = ["name", "owner", "description", "opened_year", "capacity", "country", "city", "favorite"]
-
-    const updates = Object.keys(req.body)
-    const hasValidField = updates.some(field => allowedFields.includes(field))
-
-    if (!hasValidField) {
-        return res.status(400).json({
-            message: "Body is empty or contains no valid fields"
-        })
-    }
-
+    // const allowedFields = ["name", "owner", "description", "opened_year", "capacity", "country", "city", "favorite"]
+    //
+    // const updates = Object.keys(req.body)
+    // const hasValidField = updates.some(field => allowedFields.includes(field))
+    //
+    // if (!hasValidField) {
+    //     return res.status(400).json({
+    //         message: "Body is empty or contains no valid fields"
+    //     })
+    // }
+    if (req.body?.name || req.body?.owner || req.body?.description || req.body?.opened_year || req.body?.capacity || req.body.country || req.body.city ||req.body?.favorite) {
     try {
         const circuit = await Circuit.findById(id)
 
@@ -160,7 +172,9 @@ router.patch("/:id", async (req, res) => {
 
     } catch (e) {
         res.status(400).json({ message: e.message })
-    }
+    }} else {
+    res.status(400).json({message: "Body is empty"})
+}
 })
 router.delete("/:id", async (req, res) => {
     const id = req.params.id;
