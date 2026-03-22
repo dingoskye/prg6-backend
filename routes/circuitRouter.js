@@ -24,7 +24,7 @@ router.get("/", async (req, res) => {
             country: circuit.country,
             _links: {
                 self: {
-                    href: `${process.env.BASE_URI}/${circuit._id}`
+                    href: `${process.env.BASE_URI}/${circuit.id}`
                 }
             }
         }))
