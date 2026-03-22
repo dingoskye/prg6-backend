@@ -1,5 +1,6 @@
 import express from "express"
 import Circuit from "../models/circuitModel.js";
+import mongoose from "mongoose";
 
 const router = express.Router()
 
@@ -19,6 +20,7 @@ router.get("/", async (req, res) => {
         const circuits = await Circuit.find({})
 
         const items = circuits.map(circuit => ({
+            id: circuit.id,
             name: circuit.name,
             owner: circuit.owner,
             country: circuit.country,
@@ -54,12 +56,17 @@ router.get("/:id", async (req, res) => {
         const circuit = await Circuit.findById(id);
 
         if (!circuit) {
-            return res.status(404).json({ message: "Circuit not found" });
+            return res.status(404).json({
+                message: "Circuit not found"
+            });
         }
 
-        res.status(200).json(circuit);
+        return res.status(200).json(circuit);
     } catch (e) {
-        res.status(404).json({ message: "Circuit not found" });
+        console.log(e);
+        return res.status(500).json({
+            message: "Server error"
+        });
     }
 })
 
@@ -93,7 +100,7 @@ router.put("/:id", async (req, res) => {
     const id = req.params.id
 
     try {
-        const circuit = await Circuit.findById(id)
+        const circuit = await Circuit.findByIdAndUpdate(id)
 
         if (!circuit) {
             return res.status(404).json({ message: "Circuit not found" })
