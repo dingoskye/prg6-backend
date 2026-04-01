@@ -10,7 +10,7 @@ const circuitModel = new mongoose.Schema({
         city: { type: String, required: true },
         favorite: { type: Boolean, required: true, default: false },
 
-},{
+    },{
         toJSON: {
             timestamps: true,
             virtuals: true,
@@ -29,7 +29,7 @@ const circuitModel = new mongoose.Schema({
             },
         },
     }
-    )
+)
 
 const Circuit = mongoose.model("circuit", circuitModel)
 
