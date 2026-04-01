@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from "mongoose";
 const app = express();
+import cors from "cors";
 import router from "./routes/circuitRouter.js";
 
 try {
@@ -10,6 +11,7 @@ try {
         console.log(`Server is listening on port ${process.env.EXPRESS_PORT}`)
     })
 
+    app.use(cors());
     app.use(express.json());
     app.use(express.urlencoded({extended: true}));
 
